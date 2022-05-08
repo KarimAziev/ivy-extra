@@ -1,0 +1,71 @@
+* ivy-extra
+
+Functions and commands that extends ~ivy-read~.
+
+** Install
+
++ Manually
+
+  Just download repo and add it to your load path.
+
+  #+begin_src emacs-lisp
+  (add-to-list 'load-path "/path/to/ivy-extra/")
+  (require 'ivy-extra)
+  #+end_src
+
++ Or with straight and use-package:
+
+#+begin_src elisp
+(use-package ivy-extra
+  :straight (ivy-extra
+             :type git
+             :host github
+             :repo "KarimAziev/ivy-extra"))
+#+end_src
+
+** Commands
+
++ ~ivy-extra-read~ (prompt collection &rest ivy-args)
+
+Configure and call ~ivy-read~ with PROMPT, COLLECTION and IVY-ARGS.
+
+IVY-ARGS are combined args both from ~ivy-read~ and ~ivy-configure~,
+excluding caller.
+
+For example with plain ~ivy-read~ and ~ivy-configure~ you would write something like:
+
+#+begin_src elisp
+(defun my-completion-read ()
+  (interactive)
+  (ivy-read "My prompt"
+            '("a" "b" "c")))
+
+(ivy-configure 'my-completion-read
+  :display-transformer-fn (lambda (it) (concat it "- my suffix")))
+#+end_src
+
+And with ~ivy-extra-read~:
+
+#+begin_src emacs-lisp
+(defun my-completion-read ()
+  (ivy-extra-read "My prompt" '("a" "b" "c")
+                  :display-transformer-fn (lambda (it) (concat it "- my suffix"))))
+#+end_src
+
++ ~ivy-extra-read-multi~ (prompt collection &rest ivy-args)
+Read COLLECTION with PROMPT and return list with selected candidates.
+IVY-ARGS are combined args both from ~ivy-read~ and ~ivy-configure~,
+excluding :action, :multi-action and :caller, but accepting :persistent-action.
+
+Persistent action will be called with current candidate without exiting
+completion.
+
+#+begin_src elisp
+(ivy-extra-read-multi "My prompt" '("a" "b" "c")
+ :display-transformer-fn (lambda (it) (concat it "- my suffix")))
+#+end_src
+
+** Functions
++ ~ivy-extra-update~ (prompt candidates)
+Set current ivy collection to CANDIDATES without exiting minibuffer.
+With optional argument PROMPT also update ~ivy--prompt~.
