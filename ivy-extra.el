@@ -123,8 +123,8 @@ excluding caller."
                          ivy-extra-configure-keywords)))
     (when configure-args
       (push 'ivy-extra-read configure-args)
-      (apply 'ivy-configure configure-args))
-    (apply 'ivy-read args)))
+      (apply #'ivy-configure configure-args))
+    (apply #'ivy-read args)))
 
 ;;;###autoload
 (defun ivy-extra-read-multi (prompt collection &rest ivy-args)
@@ -181,8 +181,8 @@ completion."
           (item))
       (when configure-args
         (push 'ivy-extra-read-multi configure-args)
-        (apply 'ivy-configure configure-args))
-      (setq item (apply 'ivy-read args))
+        (apply #'ivy-configure configure-args))
+      (setq item (apply #'ivy-read args))
       (or marked (list item)))))
 
 ;;;###autoload
