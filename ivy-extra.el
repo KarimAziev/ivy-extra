@@ -149,7 +149,7 @@ excluding caller."
 
 ;;;###autoload
 (defun ivy-extra-read-multi (prompt collection &rest ivy-args)
-	"Read COLLECTION with PROMPT and return list with selected candidates.
+  "Read COLLECTION with PROMPT and return list with selected candidates.
 IVY-ARGS are combined args both from `ivy-read' and `ivy-configure',
 excluding :action, :multi-action and :caller, but accepting :persistent-action.
 
@@ -184,18 +184,18 @@ completion."
                  (list prompt
                        collection
                        :caller 'ivy-extra-read-multi
-                       :action
-                       (lambda (item)
-                         (when (and persistent-action
-                                    (null ivy-exit))
-                           (funcall persistent-action item))
-                         item)
+                       :action (lambda (item)
+                                 (when (and persistent-action
+                                            (null ivy-exit))
+                                   (funcall persistent-action item))
+                                 item)
                        :multi-action (lambda (children)
                                        (setq marked children)))
                  (ivy-extra-plist-pick
                   ivy-args
                   (seq-difference ivy-extra-ivy-read-keywords
-                                  '(:multi-action :action)))))
+                                  '(:multi-action
+                                    :action)))))
           (configure-args (ivy-extra-plist-pick
                            ivy-args
                            ivy-extra-configure-keywords))
@@ -204,7 +204,8 @@ completion."
         (push 'ivy-extra-read-multi configure-args)
         (apply #'ivy-configure configure-args))
       (setq item (apply #'ivy-read args))
-      (or marked (list item)))))
+      (or marked
+          (when item (list item))))))
 
 ;;;###autoload
 (defun ivy-extra-update (candidates &optional prompt)
@@ -214,7 +215,8 @@ With optional argument PROMPT also update `ivy--prompt'."
   (delete-minibuffer-contents)
   (setf (ivy-state-collection ivy-last)
         ivy--all-candidates)
-  (setf (ivy-state-preselect ivy-last) ivy--index)
+  (setf (ivy-state-preselect ivy-last)
+        ivy--index)
   (ivy--reset-state ivy-last)
   (when prompt
     (setq ivy--prompt prompt)))
