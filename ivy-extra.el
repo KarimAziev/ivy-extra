@@ -5,7 +5,7 @@
 ;; Author: Karim Aziiev <karim.aziiev@gmail.com>
 ;; URL: https://github.com/KarimAziev/ivy-extra
 ;; Keywords: lisp
-;; Version: 0.1.1
+;; Version: 0.2.0
 ;; Package-Requires: ((emacs "27.1"))
 
 ;; This file is NOT part of GNU Emacs.
@@ -34,13 +34,23 @@
 ;;      excluding caller.
 
 ;; M-x `ivy-extra-read-multi' (prompt collection &rest ivy-args)
-;;      Read COLLECTION with PROMPT and return list with selected candidates.
-;;      IVY-ARGS are combined args both from `ivy-read' and `ivy-configure',
-;;      excluding :action, :multi-action and :caller, but accepting :persistent-action.
-;;
-;;      Persistent action will be called with current candidate without exiting
-;;      completion.
+;;     Read COLLECTION with PROMPT and return list with selected candidates.
+;;     IVY-ARGS are combined args both from `ivy-read' and `ivy-configure',
+;;     excluding:
 
+;;     - :action
+;;     - :multi-action
+;;     - :caller
+
+;;     but accepting additional:
+
+;;     - :persistent-action
+;;     - :premarked
+
+;; Persistent action will be called with current candidate without exiting
+;; completion.
+
+;; Premarked is candidates from COLLECTION which should be initially marked
 ;;; Code:
 
 (require 'ivy)
@@ -86,7 +96,7 @@
     plist))
 
 (defun ivy-extra-switch-buffer-action-no-record (buffer)
-  "Switch to BUFFER.
+  "Switch to BUFFER without record.
 BUFFER may be a string or nil."
   (if (zerop (length buffer))
       (switch-to-buffer
@@ -98,8 +108,7 @@ BUFFER may be a string or nil."
              (find-file (cdr virtual)))
             (view
              (delete-other-windows)
-             (let (
-                   ;; silence "Directory has changed on disk"
+             (let (;; silence "Directory has changed on disk"
                    (inhibit-message t))
                (ivy-set-view-recur (cadr view))))
             (t
@@ -147,14 +156,49 @@ excluding caller."
       (apply #'ivy-configure configure-args))
     (apply #'ivy-read args)))
 
+(defun ivy-extra-mark-candidates (candidates)
+  "Mark CANDIDATES from ivy collection."
+  (dolist (cand (ivy-state-collection
+                 ivy-last))
+    (when (member cand
+                  candidates)
+      (let ((marked-cand (concat
+                          ivy-mark-prefix
+                          cand)))
+        (setq ivy--old-cands
+              ivy--all-candidates)
+        (setcar
+         (member cand
+                 ivy--all-candidates)
+         (setcar
+          (member cand
+                  ivy--old-cands)
+          marked-cand))
+        (setq ivy-marked-candidates
+              (append
+               ivy-marked-candidates
+               (list
+                marked-cand)))))))
+
 ;;;###autoload
 (defun ivy-extra-read-multi (prompt collection &rest ivy-args)
   "Read COLLECTION with PROMPT and return list with selected candidates.
 IVY-ARGS are combined args both from `ivy-read' and `ivy-configure',
-excluding :action, :multi-action and :caller, but accepting :persistent-action.
+excluding:
+
+- :action
+- :multi-action
+- :caller
+
+but accepting:
+
+- :persistent-action
+- :premarked
 
 Persistent action will be called with current candidate without exiting
-completion."
+completion.
+
+Premarked is candidates from COLLECTION which should be initially marked."
   (interactive)
   (dolist (alist-sym '(ivy--parents-alist
                        ivy-initial-inputs-alist
@@ -178,8 +222,8 @@ completion."
           (ivy-extra-plist-omit counsel--async-exit-code-plist
                                 '(ivy-extra-read-multi))))
   (let ((marked)
-        (persistent-action (plist-get ivy-args
-                                      :persistent-action)))
+        (persistent-action (plist-get ivy-args :persistent-action))
+        (premarked-candidates (plist-get ivy-args :premarked)))
     (let ((args (append
                  (list prompt
                        collection
@@ -203,7 +247,13 @@ completion."
       (when configure-args
         (push 'ivy-extra-read-multi configure-args)
         (apply #'ivy-configure configure-args))
-      (setq item (apply #'ivy-read args))
+      (setq item (if premarked-candidates
+                     (minibuffer-with-setup-hook
+                         (lambda ()
+                           (when (active-minibuffer-window)
+                             (ivy-extra-mark-candidates premarked-candidates)))
+                       (apply #'ivy-read args))
+                   (apply #'ivy-read args)))
       (or marked
           (when item (list item))))))
 
