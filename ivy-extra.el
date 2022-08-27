@@ -212,14 +212,27 @@ completion."
   "Update ivy collection to CANDIDATES without exiting minibuffer.
 With optional argument PROMPT also update `ivy--prompt'."
   (ivy-update-candidates candidates)
-  (delete-minibuffer-contents)
-  (setf (ivy-state-collection ivy-last)
-        ivy--all-candidates)
-  (setf (ivy-state-preselect ivy-last)
-        ivy--index)
-  (ivy--reset-state ivy-last)
-  (when prompt
-    (setq ivy--prompt prompt)))
+  (let ((input ivy-text)
+        (pos
+         (when-let ((wind (active-minibuffer-window)))
+           (with-selected-window wind
+             (point))))
+        (prompt-end (minibuffer-prompt-end))
+        (diff))
+    (delete-minibuffer-contents)
+    (setq diff (- pos prompt-end))
+    (setf (ivy-state-collection ivy-last)
+          ivy--all-candidates)
+    (setf (ivy-state-preselect ivy-last)
+          ivy--index)
+    (ivy--reset-state ivy-last)
+    (when prompt
+      (setq ivy--prompt prompt))
+    (when-let ((wind (active-minibuffer-window)))
+      (with-selected-window wind
+        (insert input)
+        (goto-char (minibuffer-prompt-end))
+        (forward-char diff)))))
 
 (provide 'ivy-extra)
 ;;; ivy-extra.el ends here
