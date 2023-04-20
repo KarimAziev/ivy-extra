@@ -98,22 +98,23 @@
 (defun ivy-extra-switch-buffer-action-no-record (buffer)
   "Switch to BUFFER without record.
 BUFFER may be a string or nil."
-  (if (zerop (length buffer))
-      (switch-to-buffer
-       ivy-text nil 'force-same-window)
-    (let ((virtual (assoc buffer ivy--virtual-buffers))
-          (view (assoc buffer ivy-views)))
-      (cond ((and virtual
-                  (not (get-buffer buffer)))
-             (find-file (cdr virtual)))
-            (view
-             (delete-other-windows)
-             (let (;; silence "Directory has changed on disk"
-                   (inhibit-message t))
-               (ivy-set-view-recur (cadr view))))
-            (t
-             (switch-to-buffer
-              buffer t 'force-same-window))))))
+  (let ((buff (if (zerop (length buffer))
+                  (get-buffer ivy-text)
+                (get-buffer buffer)))
+        (virtual)
+        (view))
+    (cond ((and buff
+                (buffer-live-p buff))
+           (pop-to-buffer-same-window buff))
+          ((setq virtual (assoc buffer ivy--virtual-buffers))
+           (find-file (cdr virtual)))
+          ((setq view (assoc buffer ivy-views))
+           (delete-other-windows)
+           (let (;; silence "Directory has changed on disk"
+                 (inhibit-message t))
+             (ivy-set-view-recur (cadr view))))
+          (t
+           (switch-to-buffer buffer t 'force-same-window)))))
 
 ;;;###autoload
 (defun ivy-extra-read (prompt collection &rest ivy-args)
