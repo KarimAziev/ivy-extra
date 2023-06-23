@@ -24,15 +24,13 @@ Download repository and it to your load path in your init file:
 *** With use-package and straight
 
 #+begin_src elisp :eval no
-
 (use-package ivy-extra
-	:straight (ivy-extra
-			       :repo "KarimAziev/ivy-extra"
-			       :type git
-			       :host github)
-	:commands (ivy-extra-read-multi
-			       ivy-extra-read))
-
+  :straight (ivy-extra
+             :repo "KarimAziev/ivy-extra"
+             :type git
+             :host github)
+  :commands (ivy-extra-read-multi
+             ivy-extra-read))
 #+end_src
 
 ** Commands

@@ -72,7 +72,7 @@
                :action :multi-action))
 
 (defun ivy-extra-plist-pick (plist keywords)
-	"Pick KEYWORDS from PLIST."
+  "Pick KEYWORDS from PLIST."
   (let ((result)
         (keyword))
     (while (setq keyword (pop keywords))
@@ -118,7 +118,7 @@ BUFFER may be a string or nil."
 
 ;;;###autoload
 (defun ivy-extra-read (prompt collection &rest ivy-args)
-	"Configure and call `ivy-read' with PROMPT, COLLECTION and IVY-ARGS.
+  "Configure and call `ivy-read' with PROMPT, COLLECTION and IVY-ARGS.
 IVY-ARGS are combined args both from `ivy-read' and `ivy-configure',
 excluding caller."
   (interactive)
