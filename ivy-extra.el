@@ -6,7 +6,8 @@
 ;; URL: https://github.com/KarimAziev/ivy-extra
 ;; Keywords: lisp
 ;; Version: 0.2.0
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "29.1") (ivy "0.14.0"))
+;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -22,6 +23,7 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 ;;; Commentary:
 
 ;; This file configures operations with extra
@@ -284,6 +286,78 @@ With optional argument PROMPT also update `ivy--prompt'."
         (insert input)
         (goto-char (minibuffer-prompt-end))
         (forward-char diff)))))
+
+(defcustom ivy-extra-incompatible-ivy-read-modes '(fido-mode
+                                                   icomplete-mode
+                                                   vertico-mode
+                                                   ido-mode
+                                                   minibuffer-auto-mode
+                                                   fido-vertical-mode)
+  "List of modes to disable before `ivy-read' calling."
+  :type '(repeat symbol)
+  :group 'ivy)
+
+(defcustom ivy-extra-extra-default-actions '((describe-keymap . describe-keymap)
+                                             (describe-variable . describe-variable)
+                                             (describe-function . describe-function)
+                                             (cl-describe-type . cl-describe-type)
+                                             (describe-face . describe-face)
+                                             (describe-symbol . describe-symbol)
+                                             (describe-icon . describe-icon)
+                                             (describe-command . describe-command))
+  "Alist of extra commands and default ivy actions."
+  :type '(alist
+          :key-type (symbol :tag "Command")
+          :value-type (symbol :tag "Action"))
+  :group 'ivy-extra)
+
+
+
+
+(defun ivy-extra-disable-incompatible-modes (fn &rest args)
+  "Disable incompatible modes for FN, invoke FN with ARGS and then restore modes.
+Incompatible modes are stored in `ivy-extra-incompatible-ivy-read-modes'.
+Usage:
+\\=(advice-add \\='ivy-read :around #\\='ivy-extra-disable-incompatible-modes)."
+  (let ((active-modes
+         (seq-filter
+          (lambda (mode)
+            (and
+             (boundp mode)
+             (symbol-value mode)))
+          ivy-extra-incompatible-ivy-read-modes)))
+    (if active-modes
+        (unwind-protect
+            (progn
+              (dolist (mode active-modes)
+                (when (and
+                       (boundp mode)
+                       (symbol-value mode))
+                  (funcall mode -1)))
+              (apply fn args))
+          (dolist (mode active-modes)
+            (funcall mode 1)))
+      (apply fn args))))
+
+
+(defun ivy-extra-add-extra-actions ()
+  "Add default actions to commands based on `ivy-extra-extra-default-actions'."
+  (pcase-dolist (`(,command . ,action) ivy-extra-extra-default-actions)
+    (ivy-add-actions command
+                     `(("o" .
+                        ,(cond ((commandp action)
+                                `((lambda (sym)
+                                    (funcall-interactively
+                                     #',action
+                                     (intern
+                                      sym)))
+                                  "default"))
+                               (t `((lambda (sym)
+                                      (funcall #',action (intern sym)))
+                                    "default"))))))))
+
+
+
 
 (provide 'ivy-extra)
 ;;; ivy-extra.el ends here
