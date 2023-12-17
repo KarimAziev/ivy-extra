@@ -304,7 +304,8 @@ With optional argument PROMPT also update `ivy--prompt'."
                                              (describe-face . describe-face)
                                              (describe-symbol . describe-symbol)
                                              (describe-icon . describe-icon)
-                                             (describe-command . describe-command))
+                                             (describe-command . describe-command)
+                                             (shortdoc . shortdoc-display-group))
   "Alist of extra commands and default ivy actions."
   :type '(alist
           :key-type (symbol :tag "Command")
@@ -352,9 +353,9 @@ Usage:
                                      (intern
                                       sym)))
                                   "default"))
-                               (t `((lambda (sym)
-                                      (funcall #',action (intern sym)))
-                                    "default"))))))))
+                          (t `((lambda (sym)
+                                 (funcall #',action (intern sym)))
+                               "default"))))))))
 
 
 
