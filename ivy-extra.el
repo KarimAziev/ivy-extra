@@ -291,13 +291,24 @@ With optional argument PROMPT also update `ivy--prompt'."
   "Display BUFF in a new window if not already visible.
 
 Argument BUFF is the buffer to display."
-  (unless (get-buffer-window buff)
-    (with-ivy-window
-      (display-buffer
-       buff
-       (cons
-        'display-buffer-same-window
-        '((window-height . window-preserve-size)))))))
+  (if ivy-exit
+      buff
+    (unless (get-buffer-window buff)
+      (with-ivy-window
+        (let ((minibuff (active-minibuffer-window))
+              (self-wnd (selected-window))
+              (target))
+          (setq target (car (seq-remove (lambda (wnd)
+                                          (or
+                                           (eq wnd minibuff)
+                                           (eq wnd self-wnd)
+                                           (window-dedicated-p wnd)))
+                                        (window-list))))
+          (if target
+              (with-selected-window target
+                (pop-to-buffer-same-window buff))
+            (display-buffer
+             buff)))))))
 
 (defcustom ivy-extra-incompatible-ivy-read-modes '(fido-mode
                                                    icomplete-mode
