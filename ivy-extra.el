@@ -345,7 +345,9 @@ the `ivy-extra-default-non-intern-actions' custom variable."
 
 
 (defcustom ivy-extra-default-non-intern-actions '((display-buffer . ivy-extra-default-display-buffer-action)
-                                                  (project-display-buffer . ivy-extra-default-display-buffer-action))
+                                                  (project-display-buffer . ivy-extra-default-display-buffer-action)
+                                                  (switch-to-buffer . ivy-extra-default-display-buffer-action)
+                                                  (switch-to-buffer-other-window . ivy-extra-default-display-buffer-action))
   "Alist mapping commands to their default Ivy actions that operate on strings.
 
 Each action takes a string that corresponds to the completion string directly.
