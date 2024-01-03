@@ -287,6 +287,18 @@ With optional argument PROMPT also update `ivy--prompt'."
         (goto-char (minibuffer-prompt-end))
         (forward-char diff)))))
 
+(defun ivy-extra-default-display-buffer-action (buff)
+  "Display BUFF in a new window if not already visible.
+
+Argument BUFF is the buffer to display."
+  (unless (get-buffer-window buff)
+    (with-ivy-window
+      (display-buffer
+       buff
+       (cons
+        'display-buffer-same-window
+        '((window-height . window-preserve-size)))))))
+
 (defcustom ivy-extra-incompatible-ivy-read-modes '(fido-mode
                                                    icomplete-mode
                                                    vertico-mode
@@ -306,11 +318,33 @@ With optional argument PROMPT also update `ivy--prompt'."
                                              (describe-icon . describe-icon)
                                              (describe-command . describe-command)
                                              (shortdoc . shortdoc-display-group))
-  "Alist of extra commands and default ivy actions."
+  "Alist mapping commands to their default Ivy actions that operate on symbols.
+
+Each action takes a symbol, which is derived from the completion string using
+`intern'. The alist is structured with the command as the key and the
+corresponding action as the value.
+
+For actions that should operate on strings directly, rather than symbols, use
+the `ivy-extra-default-non-intern-actions' custom variable."
   :type '(alist
           :key-type (symbol :tag "Command")
-          :value-type (symbol :tag "Action"))
+          :value-type (function :tag "Action"))
   :group 'ivy-extra)
+
+
+
+(defcustom ivy-extra-default-non-intern-actions '((display-buffer . ivy-extra-default-display-buffer-action)
+                                                  (project-display-buffer . ivy-extra-default-display-buffer-action))
+  "Alist mapping commands to their default Ivy actions that operate on strings.
+
+Each action takes a string that corresponds to the completion string directly.
+The alist pairs each command with an appropriate function to be called with the
+string."
+  :type '(alist
+          :key-type (symbol :tag "Command")
+          :value-type (function :tag "Action"))
+  :group 'ivy-extra)
+
 
 
 
@@ -342,7 +376,13 @@ Usage:
 
 
 (defun ivy-extra-add-extra-actions ()
-  "Add default actions to commands based on `ivy-extra-extra-default-actions'."
+  "Add default actions for commands specified by custom variables.
+
+Actions defined in `ivy-extra-extra-default-actions' accept one argument,
+a symbol derived from the completion string via `intern'.
+
+Actions in `ivy-extra-default-non-intern-actions' accept one argument,
+a string that corresponds to the completion string as it is."
   (pcase-dolist (`(,command . ,action) ivy-extra-extra-default-actions)
     (ivy-add-actions command
                      `(("o" .
@@ -355,6 +395,19 @@ Usage:
                                   "default"))
                           (t `((lambda (sym)
                                  (funcall #',action (intern sym)))
+                               "default")))))))
+  (pcase-dolist (`(,command . ,action)
+                 ivy-extra-default-non-intern-actions)
+    (ivy-add-actions command
+                     `(("o" .
+                        ,(cond ((commandp action)
+                                `((lambda (str)
+                                    (funcall-interactively
+                                     #',action
+                                     str))
+                                  "default"))
+                          (t `((lambda (str)
+                                 (funcall #',action str))
                                "default"))))))))
 
 
