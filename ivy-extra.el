@@ -328,7 +328,8 @@ Argument BUFF is the buffer to display."
                                              (describe-symbol . describe-symbol)
                                              (describe-icon . describe-icon)
                                              (describe-command . describe-command)
-                                             (shortdoc . shortdoc-display-group))
+                                             (shortdoc . shortdoc-display-group)
+                                             (load-theme . load-theme))
   "Alist mapping commands to their default Ivy actions that operate on symbols.
 
 Each action takes a symbol, which is derived from the completion string using
