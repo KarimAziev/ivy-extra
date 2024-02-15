@@ -344,11 +344,23 @@ the `ivy-extra-default-non-intern-actions' custom variable."
   :group 'ivy-extra)
 
 
+(defun ivy-extra-display-manual (it)
+  (with-ivy-window
+    (let* ((wnd (selected-window))
+           (other-wnd (or (window-right wnd)
+                          (window-left wnd)
+                          (and (window-splittable-p wnd)
+                               (split-window-sensibly wnd)))))
+      (when other-wnd
+        (select-window other-wnd)
+        (info-display-manual it)))))
+
 
 (defcustom ivy-extra-default-non-intern-actions '((display-buffer . ivy-extra-default-display-buffer-action)
                                                   (project-display-buffer . ivy-extra-default-display-buffer-action)
                                                   (switch-to-buffer . ivy-extra-default-display-buffer-action)
-                                                  (switch-to-buffer-other-window . ivy-extra-default-display-buffer-action))
+                                                  (switch-to-buffer-other-window . ivy-extra-default-display-buffer-action)
+                                                  (info-display-manual . ivy-extra-display-manual))
   "Alist mapping commands to their default Ivy actions that operate on strings.
 
 Each action takes a string that corresponds to the completion string directly.
