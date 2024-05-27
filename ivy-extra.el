@@ -1,4 +1,4 @@
-;;; ivy-extra.el --- Configure extra -*- lexical-binding: t -*-
+;;; ivy-extra.el --- Extra Ivy functions -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2022 Karim Aziiev <karim.aziiev@gmail.com>
 
@@ -26,7 +26,8 @@
 
 ;;; Commentary:
 
-;; This file configures operations with extra
+;; This package provides additional functions and configurations for Ivy,
+;; enhancing its capabilities and customization options.
 
 ;; Commands
 
@@ -345,6 +346,9 @@ the `ivy-extra-default-non-intern-actions' custom variable."
 
 
 (defun ivy-extra-display-manual (it)
+  "Display the manual for IT in another window.
+
+Argument IT is the manual to be displayed."
   (with-ivy-window
     (let* ((wnd (selected-window))
            (other-wnd (or (window-right wnd)
@@ -435,9 +439,6 @@ a string that corresponds to the completion string as it is."
                           (t `((lambda (str)
                                  (funcall #',action str))
                                "default"))))))))
-
-
-
 
 (provide 'ivy-extra)
 ;;; ivy-extra.el ends here
