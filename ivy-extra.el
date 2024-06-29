@@ -6,7 +6,7 @@
 ;; URL: https://github.com/KarimAziev/ivy-extra
 ;; Keywords: lisp
 ;; Version: 0.2.0
-;; Package-Requires: ((emacs "29.1") (ivy "0.14.0"))
+;; Package-Requires: ((emacs "29.1") (ivy "0.14.2"))
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
 ;; This file is NOT part of GNU Emacs.
@@ -324,12 +324,15 @@ Argument BUFF is the buffer to display."
 (defcustom ivy-extra-extra-default-actions '((describe-keymap . describe-keymap)
                                              (describe-variable . describe-variable)
                                              (describe-function . describe-function)
-                                             (cl-describe-type . cl-describe-type)
-                                             (describe-face . describe-face)
-                                             (describe-symbol . describe-symbol)
                                              (describe-icon . describe-icon)
                                              (describe-command . describe-command)
+                                             (describe-minor-mode . describe-minor-mode)
+                                             (describe-theme . describe-theme)
+                                             (describe-face . describe-face)
+                                             (describe-symbol . describe-symbol)
+                                             (cl-describe-type . cl-describe-type)
                                              (shortdoc . shortdoc-display-group)
+                                             (shortdoc-display-group . shortdoc-display-group)
                                              (load-theme . load-theme))
   "Alist mapping commands to their default Ivy actions that operate on symbols.
 
@@ -364,7 +367,8 @@ Argument IT is the manual to be displayed."
                                                   (project-display-buffer . ivy-extra-default-display-buffer-action)
                                                   (switch-to-buffer . ivy-extra-default-display-buffer-action)
                                                   (switch-to-buffer-other-window . ivy-extra-default-display-buffer-action)
-                                                  (info-display-manual . ivy-extra-display-manual))
+                                                  (info-display-manual . ivy-extra-display-manual)
+                                                  (find-library . find-library))
   "Alist mapping commands to their default Ivy actions that operate on strings.
 
 Each action takes a string that corresponds to the completion string directly.
@@ -376,6 +380,15 @@ string."
   :group 'ivy-extra)
 
 
+(defun ivy-extra--var-watcher (&rest _)
+  "Schedule a timer to run `ivy-extra-add-extra-actions' after 0.1 seconds."
+  (run-with-timer 0.1 nil #'ivy-extra-add-extra-actions))
+
+(add-variable-watcher 'ivy-extra-default-non-intern-actions
+                      'ivy-extra--var-watcher)
+
+(add-variable-watcher 'ivy-extra-extra-default-actions
+                      'ivy-extra--var-watcher)
 
 
 
