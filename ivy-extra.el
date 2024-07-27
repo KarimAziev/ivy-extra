@@ -58,6 +58,60 @@
 
 (require 'ivy)
 
+(defcustom ivy-extra-incompatible-ivy-read-modes '(fido-mode
+                                                   icomplete-mode
+                                                   vertico-mode
+                                                   ido-mode
+                                                   minibuffer-auto-mode
+                                                   fido-vertical-mode)
+  "List of modes to disable before `ivy-read' calling."
+  :type '(repeat symbol)
+  :group 'ivy)
+
+(defcustom ivy-extra-extra-default-actions '((describe-keymap . describe-keymap)
+                                             (describe-variable . describe-variable)
+                                             (describe-function . describe-function)
+                                             (describe-icon . describe-icon)
+                                             (describe-command . describe-command)
+                                             (describe-minor-mode . describe-minor-mode)
+                                             (describe-theme . describe-theme)
+                                             (describe-face . describe-face)
+                                             (describe-symbol . describe-symbol)
+                                             (cl-describe-type . cl-describe-type)
+                                             (shortdoc . shortdoc-display-group)
+                                             (shortdoc-display-group . shortdoc-display-group)
+                                             (load-theme . load-theme))
+  "Alist mapping commands to their default Ivy actions that operate on symbols.
+
+Each action takes a symbol, which is derived from the completion string using
+`intern'. The alist is structured with the command as the key and the
+corresponding action as the value.
+
+For actions that should operate on strings directly, rather than symbols, use
+the `ivy-extra-default-non-intern-actions' custom variable."
+  :type '(alist
+          :key-type (symbol :tag "Command")
+          :value-type (function :tag "Action"))
+  :group 'ivy-extra)
+
+(defcustom ivy-extra-default-non-intern-actions '((display-buffer . ivy-extra-default-display-buffer-action)
+                                                  (project-display-buffer . ivy-extra-default-display-buffer-action)
+                                                  (switch-to-buffer . ivy-extra-default-display-buffer-action)
+                                                  (switch-to-buffer-other-window . ivy-extra-default-display-buffer-action)
+                                                  (info-display-manual . ivy-extra-display-manual)
+                                                  (find-library . find-library)
+                                                  (man . ivy-extra-man-action)
+                                                  (manual-entry . ivy-extra-man-action))
+  "Alist mapping commands to their default Ivy actions that operate on strings.
+
+Each action takes a string that corresponds to the completion string directly.
+The alist pairs each command with an appropriate function to be called with the
+string."
+  :type '(alist
+          :key-type (symbol :tag "Command")
+          :value-type (function :tag "Action"))
+  :group 'ivy-extra)
+
 (defvar ivy-extra-configure-keywords
   '(:parent :initial-input :height :occur
             :update-fn :init-fn :unwind-fn
@@ -311,42 +365,6 @@ Argument BUFF is the buffer to display."
             (display-buffer
              buff)))))))
 
-(defcustom ivy-extra-incompatible-ivy-read-modes '(fido-mode
-                                                   icomplete-mode
-                                                   vertico-mode
-                                                   ido-mode
-                                                   minibuffer-auto-mode
-                                                   fido-vertical-mode)
-  "List of modes to disable before `ivy-read' calling."
-  :type '(repeat symbol)
-  :group 'ivy)
-
-(defcustom ivy-extra-extra-default-actions '((describe-keymap . describe-keymap)
-                                             (describe-variable . describe-variable)
-                                             (describe-function . describe-function)
-                                             (describe-icon . describe-icon)
-                                             (describe-command . describe-command)
-                                             (describe-minor-mode . describe-minor-mode)
-                                             (describe-theme . describe-theme)
-                                             (describe-face . describe-face)
-                                             (describe-symbol . describe-symbol)
-                                             (cl-describe-type . cl-describe-type)
-                                             (shortdoc . shortdoc-display-group)
-                                             (shortdoc-display-group . shortdoc-display-group)
-                                             (load-theme . load-theme))
-  "Alist mapping commands to their default Ivy actions that operate on symbols.
-
-Each action takes a symbol, which is derived from the completion string using
-`intern'. The alist is structured with the command as the key and the
-corresponding action as the value.
-
-For actions that should operate on strings directly, rather than symbols, use
-the `ivy-extra-default-non-intern-actions' custom variable."
-  :type '(alist
-          :key-type (symbol :tag "Command")
-          :value-type (function :tag "Action"))
-  :group 'ivy-extra)
-
 
 (defun ivy-extra-display-manual (it)
   "Display the manual for IT in another window.
@@ -363,22 +381,6 @@ Argument IT is the manual to be displayed."
         (info-display-manual it)))))
 
 
-(defcustom ivy-extra-default-non-intern-actions '((display-buffer . ivy-extra-default-display-buffer-action)
-                                                  (project-display-buffer . ivy-extra-default-display-buffer-action)
-                                                  (switch-to-buffer . ivy-extra-default-display-buffer-action)
-                                                  (switch-to-buffer-other-window . ivy-extra-default-display-buffer-action)
-                                                  (info-display-manual . ivy-extra-display-manual)
-                                                  (find-library . find-library))
-  "Alist mapping commands to their default Ivy actions that operate on strings.
-
-Each action takes a string that corresponds to the completion string directly.
-The alist pairs each command with an appropriate function to be called with the
-string."
-  :type '(alist
-          :key-type (symbol :tag "Command")
-          :value-type (function :tag "Action"))
-  :group 'ivy-extra)
-
 
 (defun ivy-extra--var-watcher (&rest _)
   "Schedule a timer to run `ivy-extra-add-extra-actions' after 0.1 seconds."
@@ -391,6 +393,20 @@ string."
                       'ivy-extra--var-watcher)
 
 
+
+(defun ivy-extra-man-action (args)
+  "Open a man page for ARGS in another window if available.
+
+Argument ARGS is the string representing the manual page to display."
+  (with-ivy-window
+    (let* ((wnd (selected-window))
+           (other-wnd (or (window-right wnd)
+                          (window-left wnd)
+                          (and (window-splittable-p wnd)
+                               (split-window-sensibly wnd)))))
+      (when other-wnd
+        (select-window other-wnd)
+        (man args)))))
 
 (defun ivy-extra-disable-incompatible-modes (fn &rest args)
   "Disable incompatible modes for FN, invoke FN with ARGS and then restore modes.
