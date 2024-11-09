@@ -322,7 +322,7 @@ With optional argument PROMPT also update `ivy--prompt'."
   (ivy-update-candidates candidates)
   (let ((input ivy-text)
         (pos
-         (when-let ((wind (active-minibuffer-window)))
+         (when-let* ((wind (active-minibuffer-window)))
            (with-selected-window wind
              (point))))
         (prompt-end (minibuffer-prompt-end))
@@ -336,7 +336,7 @@ With optional argument PROMPT also update `ivy--prompt'."
     (ivy--reset-state ivy-last)
     (when prompt
       (setq ivy--prompt prompt))
-    (when-let ((wind (active-minibuffer-window)))
+    (when-let* ((wind (active-minibuffer-window)))
       (with-selected-window wind
         (insert input)
         (goto-char (minibuffer-prompt-end))
